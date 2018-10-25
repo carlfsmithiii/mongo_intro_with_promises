@@ -11,7 +11,7 @@ MongoClient.connect(url, {useNewUrlParser: true}, function(err, client) {
 
     const db = client.db(dbName);
 
-//     insertDocuments(db).then(findDocuments(db)).then(client.close());
+    // insertDocuments(db).then(findDocuments(db)).then(client.close());
 //    insertDocuments(db).then(updateDocument(db)).then(removeDocument(db)).then(client.close());
     insertDocuments(db).then(indexCollection(db)).then(client.close());
 });
@@ -24,7 +24,7 @@ const insertDocuments = function(db) {
         assert.equal(3, result.result.n);
         assert.equal(3, result.ops.length);
         console.log("inserted 3 documents into the collection"); 
-        return Promise.resolve(result);
+        return result;
     });
 }
 
@@ -34,7 +34,7 @@ const findDocuments = function(db) {
         assert.equal(err, null);
         console.log("Found the following records");
         console.log(docs);
-        return Promise.resolve(docs);
+        return docs;
     });
 }
 
@@ -47,7 +47,7 @@ const updateDocument = function(db) {
             assert.equal(err, null);
             assert.equal(1, result.result.n);
             console.log('Updated the document with the field a equal to 2');
-            return Promise.resolve(result);
+            return result;
         }
     );
 };
@@ -60,7 +60,7 @@ const removeDocument = function(db, callback) {
             assert.equal(err, null);
             assert.equal(1, result.result.n);
             console.log("Removed the document with the field a equal to 3");
-            return Promise.resolve(result);
+            return result;
         }
     );
 }
@@ -71,7 +71,7 @@ const indexCollection = function(db) {
         null,
         function(err, results) {
             console.log(results);
-            return Promise.resolve();
+            return;
         }
     );
 }
