@@ -3,7 +3,7 @@ const assert = require('assert');
 
 const url = 'mongodb://localhost:27017';
 
-const dbName = 'myproject';
+const dbName = 'myproject2';
 
 MongoClient.connect(url, {useNewUrlParser: true}, function(err, client) {
     assert.equal(null, err);
@@ -11,72 +11,67 @@ MongoClient.connect(url, {useNewUrlParser: true}, function(err, client) {
 
     const db = client.db(dbName);
 
-//     insertDocuments(db, function() {
-//         updateDocument(db, function() {
-//             removeDocument(db, function() {
-//                 client.close();
-//             });
-//         });
-//     });
-    
-    insertDocuments(db, function() {
-        indexCollection(db, function() {
-            client.close();
-        });
-    });
+//     insertDocuments(db).then(findDocuments(db)).then(client.close());
+//    insertDocuments(db).then(updateDocument(db)).then(removeDocument(db)).then(client.close());
+    insertDocuments(db).then(indexCollection(db)).then(client.close());
 });
 
-const insertDocuments = function(db, callback) {
+const insertDocuments = function(db) {
     const collection = db.collection('documents');
-    collection.insertMany([
+    return collection.insertMany([
         {a: 1}, {a: 2}, {a: 3}
-    ], function(err, result) {
-        assert.equal(err, null);
+    ]).then((result) => {
         assert.equal(3, result.result.n);
         assert.equal(3, result.ops.length);
-        console.log("Inserted 3 documents into the collection");
-        callback(result);
+        console.log("inserted 3 documents into the collection"); 
+        return Promise.resolve(result);
     });
 }
 
-const findDocuments = function(db, callback) {
+const findDocuments = function(db) {
     const collection = db.collection('documents');
-    collection.find({'a': 3}).toArray(function(err, docs) {
+    return collection.find({'a': 3}).toArray(function (err, docs) {
         assert.equal(err, null);
         console.log("Found the following records");
         console.log(docs);
-        callback(docs);
+        return Promise.resolve(docs);
     });
 }
 
-const updateDocument = function(db, callback) {
+const updateDocument = function(db) {
     const collection = db.collection('documents');
-    collection.updateOne({a: 2}
-        , { $set: {b: 1}}, function(err, result) {
+    collection.updateOne(
+        {a: 2},
+        {$set: {b: 1}},
+        function(err, result) {
             assert.equal(err, null);
             assert.equal(1, result.result.n);
-            console.log("Updated the document with the field a equal to 2");
-            callback(result);
-        });
-}
+            console.log('Updated the document with the field a equal to 2');
+            return Promise.resolve(result);
+        }
+    );
+};
 
 const removeDocument = function(db, callback) {
     const collection = db.collection('documents');
-    collection.deleteOne({ a : 3 }, function(err, result) {
-        assert.equal(err, null);
-        assert.equal(1, result.result.n);
-        console.log("Removed the document with the field a equal to 3");
-        callback(result);
-    });
+    collection.deleteOne(
+        {a: 3},
+        function(err, result) {
+            assert.equal(err, null);
+            assert.equal(1, result.result.n);
+            console.log("Removed the document with the field a equal to 3");
+            return Promise.resolve(result);
+        }
+    );
 }
 
-const indexCollection = function(db, callback) {
+const indexCollection = function(db) {
     db.collection('documents').createIndex(
         {"a": 1},
         null,
         function(err, results) {
             console.log(results);
-            callback();
+            return Promise.resolve();
         }
     );
 }
